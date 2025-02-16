@@ -5,25 +5,25 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 201 96% 32%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --background: 217 36% 11%;
+    --foreground: 210 40% 98%;
+    --card: 217 36% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217 36% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 174 96% 52%;
+    --primary-foreground: 217 36% 11%;
+    --secondary: 217 36% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 36% 20%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 174 96% 52%;
+    --accent-foreground: 217 36% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 201 96% 32%;
+    --border: 217 36% 20%;
+    --input: 217 36% 20%;
+    --ring: 174 96% 52%;
     --radius: 0.75rem;
   }
 }
@@ -38,11 +38,11 @@
 }
 
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-lg;
+  @apply bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg;
 }
 
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02];
+  @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:scale-[1.02];
 }
 
 .fade-in {

@@ -9,7 +9,6 @@ import {
   UserCircle,
   LogOut,
   Menu,
-  DropletIcon,
 } from "lucide-react";
 
 export const Sidebar = () => {
@@ -24,15 +23,21 @@ export const Sidebar = () => {
   return (
     <div
       className={cn(
-        "h-screen sticky top-0 bg-card border-r transition-all duration-300",
+        "h-screen sticky top-0 bg-card border-r border-white/10 transition-all duration-300",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
       <div className="flex flex-col h-full">
         <div className="p-6 flex items-center gap-4">
-          <DropletIcon className="h-8 w-8 text-primary shrink-0" />
+          <img 
+            src="/lovable-uploads/463c8d26-7cb2-4465-a222-5dbccc71c495.png" 
+            alt="AquaSync Logo" 
+            className="h-8 w-8 object-contain"
+          />
           {!isCollapsed && (
-            <span className="font-semibold text-xl">Aqua Sync</span>
+            <span className="font-semibold text-xl bg-gradient-to-r from-white to-primary bg-clip-text text-transparent">
+              AquaSync
+            </span>
           )}
         </div>
 
@@ -53,8 +58,10 @@ export const Sidebar = () => {
               className={({ isActive }) =>
                 cn(
                   "flex items-center gap-4 px-4 py-3 rounded-lg transition-colors",
-                  "hover:bg-accent",
-                  isActive ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+                  "hover:bg-primary/10",
+                  isActive 
+                    ? "bg-primary/15 text-primary" 
+                    : "text-muted-foreground"
                 )
               }
             >
@@ -64,10 +71,10 @@ export const Sidebar = () => {
           ))}
         </nav>
 
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-white/10">
           <Button
             variant="ghost"
-            className="w-full justify-start gap-4"
+            className="w-full justify-start gap-4 text-muted-foreground hover:text-primary hover:bg-primary/10"
             onClick={() => {
               // Handle logout
             }}

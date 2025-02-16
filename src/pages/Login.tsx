@@ -13,15 +13,18 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState("user"); // "user" or "authority"
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login
+    // Simulate login - in real app, this would verify credentials
     setTimeout(() => {
       setIsLoading(false);
-      navigate("/dashboard");
+      // Route based on user type
+      const route = userType === "authority" ? "/authority" : "/dashboard";
+      navigate(route);
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -54,6 +57,18 @@ const Login = () => {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="userType">Login As</Label>
+                  <select
+                    id="userType"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={userType}
+                    onChange={(e) => setUserType(e.target.value)}
+                  >
+                    <option value="user">Resident</option>
+                    <option value="authority">Water Authority</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -83,6 +98,18 @@ const Login = () => {
 
             <TabsContent value="register">
               <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="userType">Register As</Label>
+                  <select
+                    id="registerUserType"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2"
+                    value={userType}
+                    onChange={(e) => setUserType(e.target.value)}
+                  >
+                    <option value="user">Resident</option>
+                    <option value="authority">Water Authority</option>
+                  </select>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input

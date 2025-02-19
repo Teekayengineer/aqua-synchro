@@ -17,28 +17,39 @@ const contractABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-];
+] as const;
+
+// Define interface for the contract functions
+interface WaterContract extends ethers.BaseContract {
+  getWaterUsage(): Promise<bigint>;
+  updateWaterUsage(usage: number): Promise<ethers.ContractTransaction>;
+}
 
 const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with actual contract address
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
-  private signer: ethers.JsonRpcSigner;
-  private contract: ethers.Contract;
+  private contract: WaterContract;
+  private initialized: boolean = false;
 
   constructor() {
-    // Connect to Ethereum network (replace with your network)
     this.provider = new ethers.JsonRpcProvider('YOUR_RPC_URL');
-    this.signer = this.provider.getSigner();
     this.contract = new ethers.Contract(
       contractAddress,
       contractABI,
       this.provider
-    );
+    ) as WaterContract;
+  }
+
+  private async initialize() {
+    if (!this.initialized) {
+      this.initialized = true;
+    }
   }
 
   async getWaterUsage(userAddress: string): Promise<number> {
     try {
+      await this.initialize();
       const usage = await this.contract.getWaterUsage();
       return Number(usage);
     } catch (error) {
@@ -49,7 +60,9 @@ class BlockchainService {
 
   async updateWaterUsage(usage: number): Promise<void> {
     try {
-      const contractWithSigner = this.contract.connect(this.signer);
+      await this.initialize();
+      const signer = await this.provider.getSigner();
+      const contractWithSigner = this.contract.connect(signer) as WaterContract;
       const tx = await contractWithSigner.updateWaterUsage(usage);
       await tx.wait(); // Wait for transaction to be mined
     } catch (error) {

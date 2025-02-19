@@ -23,6 +23,7 @@ const contractABI = [
 interface WaterContract {
   getWaterUsage(): Promise<bigint>;
   updateWaterUsage(usage: number): Promise<ethers.ContractTransaction>;
+  connect(signer: ethers.Signer): ethers.Contract & WaterContract;
 }
 
 const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with actual contract address
@@ -72,7 +73,7 @@ class BlockchainService {
     try {
       await this.initialize();
       const signer = await this.provider.getSigner();
-      const contractWithSigner = this.contract.connect(signer);
+      const contractWithSigner = this.contract.connect(signer) as ethers.Contract & WaterContract;
       const tx = await contractWithSigner.updateWaterUsage(usage);
       await tx.wait(1); // Wait for 1 block confirmation
     } catch (error) {

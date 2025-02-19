@@ -1,5 +1,6 @@
 
 import { ethers } from 'ethers';
+import type { ContractTransactionResponse } from 'ethers';
 
 // ABI for the smart contract (this would be your actual contract ABI)
 const contractABI = [
@@ -22,7 +23,7 @@ const contractABI = [
 // Define interface for the contract functions
 interface WaterContract {
   getWaterUsage(): Promise<bigint>;
-  updateWaterUsage(usage: number): Promise<ethers.ContractTransaction>;
+  updateWaterUsage(usage: number): Promise<ContractTransactionResponse>;
   connect(signer: ethers.Signer): ethers.Contract & WaterContract;
 }
 
@@ -75,7 +76,7 @@ class BlockchainService {
       const signer = await this.provider.getSigner();
       const contractWithSigner = this.contract.connect(signer) as ethers.Contract & WaterContract;
       const tx = await contractWithSigner.updateWaterUsage(usage);
-      const receipt = await tx.wait(); // No need to specify block confirmations, defaults to 1
+      const receipt = await tx.wait(); // Now properly typed with ContractTransactionResponse
       if (!receipt) {
         throw new Error('Transaction failed');
       }

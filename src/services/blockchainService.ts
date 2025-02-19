@@ -20,7 +20,7 @@ const contractABI = [
 ] as const;
 
 // Define interface for the contract functions
-interface WaterContract extends ethers.BaseContract {
+interface WaterContract {
   getWaterUsage(): Promise<bigint>;
   updateWaterUsage(usage: number): Promise<ethers.ContractTransaction>;
 }
@@ -29,25 +29,19 @@ const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with actual contract
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
-  private contract: WaterContract;
+  private contract: ethers.Contract & WaterContract;
   private initialized: boolean = false;
 
   constructor() {
-    // Using Sepolia testnet
-    this.provider = new ethers.JsonRpcProvider('https://rpc.sepolia.org');
+    // Using Infura's Sepolia endpoint (you'll need to replace with your API key)
+    this.provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/YOUR_INFURA_KEY');
     const contract = new ethers.Contract(
       contractAddress,
       contractABI,
       this.provider
-    );
+    ) as ethers.Contract & WaterContract;
     
-    // Cast the contract to our interface type after verifying it has the required functions
-    if (typeof contract.getWaterUsage === 'function' && 
-        typeof contract.updateWaterUsage === 'function') {
-      this.contract = contract as WaterContract;
-    } else {
-      throw new Error('Contract does not implement required functions');
-    }
+    this.contract = contract;
   }
 
   private async initialize() {
@@ -78,11 +72,9 @@ class BlockchainService {
     try {
       await this.initialize();
       const signer = await this.provider.getSigner();
-      const contractWithSigner = this.contract.connect(signer) as WaterContract;
+      const contractWithSigner = this.contract.connect(signer);
       const tx = await contractWithSigner.updateWaterUsage(usage);
-      if (tx.wait) {
-        await tx.wait(); // Wait for transaction to be mined
-      }
+      await tx.wait(1); // Wait for 1 block confirmation
     } catch (error) {
       console.error('Error updating water usage:', error);
       throw error;

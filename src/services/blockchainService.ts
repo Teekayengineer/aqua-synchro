@@ -33,17 +33,33 @@ class BlockchainService {
   private initialized: boolean = false;
 
   constructor() {
-    this.provider = new ethers.JsonRpcProvider('YOUR_RPC_URL');
-    this.contract = new ethers.Contract(
+    // Using Sepolia testnet
+    this.provider = new ethers.JsonRpcProvider('https://rpc.sepolia.org');
+    const contract = new ethers.Contract(
       contractAddress,
       contractABI,
       this.provider
-    ) as WaterContract;
+    );
+    
+    // Cast the contract to our interface type after verifying it has the required functions
+    if (typeof contract.getWaterUsage === 'function' && 
+        typeof contract.updateWaterUsage === 'function') {
+      this.contract = contract as WaterContract;
+    } else {
+      throw new Error('Contract does not implement required functions');
+    }
   }
 
   private async initialize() {
     if (!this.initialized) {
-      this.initialized = true;
+      try {
+        // Verify network connection
+        await this.provider.getNetwork();
+        this.initialized = true;
+      } catch (error) {
+        console.error('Failed to initialize blockchain service:', error);
+        throw error;
+      }
     }
   }
 
@@ -64,9 +80,12 @@ class BlockchainService {
       const signer = await this.provider.getSigner();
       const contractWithSigner = this.contract.connect(signer) as WaterContract;
       const tx = await contractWithSigner.updateWaterUsage(usage);
-      await tx.wait(); // Wait for transaction to be mined
+      if (tx.wait) {
+        await tx.wait(); // Wait for transaction to be mined
+      }
     } catch (error) {
       console.error('Error updating water usage:', error);
+      throw error;
     }
   }
 }

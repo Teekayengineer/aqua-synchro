@@ -2,7 +2,15 @@
 import { Card } from "@/components/ui/card";
 import { Droplet, AlertTriangle, TrendingUp } from "lucide-react";
 
-export const WaterUsageStats = () => {
+interface WaterUsageStatsProps {
+  currentUsage: number;
+}
+
+export const WaterUsageStats = ({ currentUsage }: WaterUsageStatsProps) => {
+  const dailyLimit = 300;
+  const percentageUsed = Math.round((currentUsage / dailyLimit) * 100);
+  const remaining = dailyLimit - currentUsage;
+
   return (
     <div className="grid gap-8 md:grid-cols-3">
       <Card className="p-6 glass-panel card-hover">
@@ -11,12 +19,12 @@ export const WaterUsageStats = () => {
             <p className="text-sm font-medium text-muted-foreground">
               Daily Usage
             </p>
-            <h3 className="text-2xl font-bold mt-2">245 L</h3>
+            <h3 className="text-2xl font-bold mt-2">{currentUsage} L</h3>
           </div>
           <Droplet className="h-6 w-6 text-primary" />
         </div>
         <p className="text-xs text-muted-foreground mt-4">
-          82% of daily limit
+          {percentageUsed}% of daily limit
         </p>
       </Card>
 
@@ -46,7 +54,7 @@ export const WaterUsageStats = () => {
           <AlertTriangle className="h-6 w-6 text-yellow-500" />
         </div>
         <p className="text-xs text-muted-foreground mt-4">
-          55 L remaining today
+          {remaining} L remaining today
         </p>
       </Card>
     </div>

@@ -22,13 +22,19 @@ const contractABI = [
 const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with actual contract address
 
 class BlockchainService {
-  private provider: ethers.Provider;
+  private provider: ethers.JsonRpcProvider;
+  private signer: ethers.JsonRpcSigner;
   private contract: ethers.Contract;
 
   constructor() {
     // Connect to Ethereum network (replace with your network)
     this.provider = new ethers.JsonRpcProvider('YOUR_RPC_URL');
-    this.contract = new ethers.Contract(contractAddress, contractABI, this.provider);
+    this.signer = this.provider.getSigner();
+    this.contract = new ethers.Contract(
+      contractAddress,
+      contractABI,
+      this.provider
+    );
   }
 
   async getWaterUsage(userAddress: string): Promise<number> {
@@ -43,9 +49,9 @@ class BlockchainService {
 
   async updateWaterUsage(usage: number): Promise<void> {
     try {
-      const signer = await this.provider.getSigner();
-      const contractWithSigner = this.contract.connect(signer);
-      await contractWithSigner.updateWaterUsage(usage);
+      const contractWithSigner = this.contract.connect(this.signer);
+      const tx = await contractWithSigner.updateWaterUsage(usage);
+      await tx.wait(); // Wait for transaction to be mined
     } catch (error) {
       console.error('Error updating water usage:', error);
     }

@@ -27,7 +27,8 @@ interface WaterContract {
   connect(signer: ethers.Signer): ethers.Contract & WaterContract;
 }
 
-const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace with actual contract address
+// Using a valid Ethereum address format
+const contractAddress = "0x0000000000000000000000000000000000000000"; // Replace with your actual deployed contract address
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
@@ -76,7 +77,7 @@ class BlockchainService {
       const signer = await this.provider.getSigner();
       const contractWithSigner = this.contract.connect(signer) as ethers.Contract & WaterContract;
       const tx = await contractWithSigner.updateWaterUsage(usage);
-      const receipt = await tx.wait(); // Now properly typed with ContractTransactionResponse
+      const receipt = await tx.wait();
       if (!receipt) {
         throw new Error('Transaction failed');
       }

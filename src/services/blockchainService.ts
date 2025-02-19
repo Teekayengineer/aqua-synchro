@@ -75,7 +75,10 @@ class BlockchainService {
       const signer = await this.provider.getSigner();
       const contractWithSigner = this.contract.connect(signer) as ethers.Contract & WaterContract;
       const tx = await contractWithSigner.updateWaterUsage(usage);
-      await tx.wait(1); // Wait for 1 block confirmation
+      const receipt = await tx.wait(); // No need to specify block confirmations, defaults to 1
+      if (!receipt) {
+        throw new Error('Transaction failed');
+      }
     } catch (error) {
       console.error('Error updating water usage:', error);
       throw error;

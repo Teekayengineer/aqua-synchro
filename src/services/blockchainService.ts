@@ -40,6 +40,7 @@ interface WaterContractInterface extends ethers.BaseContract {
   updateWaterUsage(usage: number): Promise<ContractTransactionResponse>;
   getExcessUsageFine(): Promise<bigint>;
   requestAllocation(amount: number, reason: string): Promise<ContractTransactionResponse>;
+  connect(signer: ethers.Signer): WaterContractInterface;
 }
 
 // Using a valid Ethereum address format
@@ -59,7 +60,7 @@ class BlockchainService {
       contractAddress,
       contractABI,
       this.provider
-    ) as unknown as WaterContractInterface;
+    ) as WaterContractInterface;
   }
 
   private async initialize() {

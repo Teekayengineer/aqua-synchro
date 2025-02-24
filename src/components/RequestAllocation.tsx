@@ -6,24 +6,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowUpCircle } from "lucide-react";
+import { blockchainService } from "@/services/blockchainService";
 
 export const RequestAllocation = () => {
   const [requestAmount, setRequestAmount] = useState("");
   const [reason, setReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // Here we would typically make an API call to submit the request
-    toast({
-      title: "Request Submitted",
-      description: `Your request for ${requestAmount}L has been submitted for approval.`,
-    });
+    try {
+      await blockchainService.requestAdditionalAllocation(
+        Number(requestAmount),
+        reason
+      );
+      
+      toast({
+        title: "Request Submitted",
+        description: `Your request for ${requestAmount}L has been submitted for approval.`,
+      });
 
-    // Reset form
-    setRequestAmount("");
-    setReason("");
+      // Reset form
+      setRequestAmount("");
+      setReason("");
+    } catch (error) {
+      toast({
+        title: "Request Failed",
+        description: "Failed to submit allocation request. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Error submitting request:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -43,6 +61,7 @@ export const RequestAllocation = () => {
             onChange={(e) => setRequestAmount(e.target.value)}
             required
             min="1"
+            disabled={isSubmitting}
           />
         </div>
         <div>
@@ -53,10 +72,11 @@ export const RequestAllocation = () => {
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             required
+            disabled={isSubmitting}
           />
         </div>
-        <Button type="submit" className="w-full">
-          Submit Request
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Submitting..." : "Submit Request"}
         </Button>
       </form>
     </Card>

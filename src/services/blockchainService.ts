@@ -1,8 +1,7 @@
-
 import { ethers } from 'ethers';
 import type { ContractTransactionResponse } from 'ethers';
 
-// ABI for the smart contract with added fine calculation
+// Updated ABI to include request allocation functionality
 const contractABI = [
   {
     "inputs": [],
@@ -24,14 +23,22 @@ const contractABI = [
     "outputs": [{"type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [{"type": "uint256"}, {"type": "string"}],
+    "name": "requestAllocation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   }
 ] as const;
 
-// Define interface for the contract functions
+// Updated interface for the contract functions
 interface WaterContract {
   getWaterUsage(): Promise<bigint>;
   updateWaterUsage(usage: number): Promise<ContractTransactionResponse>;
   getExcessUsageFine(): Promise<bigint>;
+  requestAllocation(amount: number, reason: string): Promise<ContractTransactionResponse>;
   connect(signer: ethers.Signer): ethers.Contract & WaterContract;
 }
 
@@ -122,6 +129,26 @@ class BlockchainService {
     } catch (error) {
       console.error('Error fetching excess usage fine:', error);
       return 0;
+    }
+  }
+
+  async requestAdditionalAllocation(amount: number, reason: string): Promise<void> {
+    try {
+      await this.initialize();
+      const signer = await this.provider.getSigner();
+      const contractWithSigner = this.contract.connect(signer);
+      
+      const tx = await contractWithSigner.requestAllocation(amount, reason);
+      const receipt = await tx.wait();
+      
+      if (!receipt) {
+        throw new Error('Transaction failed');
+      }
+
+      console.log('Allocation request submitted successfully');
+    } catch (error) {
+      console.error('Error requesting allocation:', error);
+      throw error;
     }
   }
 }

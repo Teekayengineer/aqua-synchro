@@ -34,12 +34,12 @@ const contractABI = [
 ] as const;
 
 // Updated interface for the contract functions
-interface WaterContract {
+interface WaterContract extends ethers.BaseContract {
   getWaterUsage(): Promise<bigint>;
   updateWaterUsage(usage: number): Promise<ContractTransactionResponse>;
   getExcessUsageFine(): Promise<bigint>;
   requestAllocation(amount: number, reason: string): Promise<ContractTransactionResponse>;
-  connect(signer: ethers.Signer): ethers.Contract & WaterContract;
+  connect(signer: ethers.Signer): WaterContract;
 }
 
 // Using a valid Ethereum address format
@@ -50,18 +50,16 @@ const FINE_RATE = 0.50; // 50 cents per ml over limit
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
-  private contract: ethers.Contract & WaterContract;
+  private contract: WaterContract;
   private initialized: boolean = false;
 
   constructor() {
     this.provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/YOUR_INFURA_KEY');
-    const contract = new ethers.Contract(
+    this.contract = new ethers.Contract(
       contractAddress,
       contractABI,
       this.provider
-    ) as ethers.Contract & WaterContract;
-    
-    this.contract = contract;
+    ) as WaterContract;
   }
 
   private async initialize() {

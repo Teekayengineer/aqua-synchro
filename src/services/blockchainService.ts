@@ -1,3 +1,4 @@
+
 import { ethers } from 'ethers';
 import type { ContractTransactionResponse } from 'ethers';
 
@@ -33,13 +34,12 @@ const contractABI = [
   }
 ] as const;
 
-// Updated interface for the contract functions
-interface WaterContract extends ethers.BaseContract {
+// Define the contract interface with explicit types
+interface WaterContractInterface extends ethers.BaseContract {
   getWaterUsage(): Promise<bigint>;
   updateWaterUsage(usage: number): Promise<ContractTransactionResponse>;
   getExcessUsageFine(): Promise<bigint>;
   requestAllocation(amount: number, reason: string): Promise<ContractTransactionResponse>;
-  connect(signer: ethers.Signer): WaterContract;
 }
 
 // Using a valid Ethereum address format
@@ -50,7 +50,7 @@ const FINE_RATE = 0.50; // 50 cents per ml over limit
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
-  private contract: WaterContract;
+  private contract: WaterContractInterface;
   private initialized: boolean = false;
 
   constructor() {
@@ -59,7 +59,7 @@ class BlockchainService {
       contractAddress,
       contractABI,
       this.provider
-    ) as WaterContract;
+    ) as unknown as WaterContractInterface;
   }
 
   private async initialize() {
@@ -99,7 +99,7 @@ class BlockchainService {
       const fine = await this.calculateExcessFine(usage);
       
       const signer = await this.provider.getSigner();
-      const contractWithSigner = this.contract.connect(signer) as ethers.Contract & WaterContract;
+      const contractWithSigner = this.contract.connect(signer);
       
       // Update water usage on the blockchain
       const tx = await contractWithSigner.updateWaterUsage(usage);
@@ -109,7 +109,7 @@ class BlockchainService {
         throw new Error('Transaction failed');
       }
 
-      // If there's a fine, log it (you might want to emit an event or store this information)
+      // If there's a fine, log it
       if (fine > 0) {
         console.log(`Excess usage fine calculated: $${fine.toFixed(2)}`);
       }

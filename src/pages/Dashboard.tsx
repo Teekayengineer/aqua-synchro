@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { WaterUsageStats } from "@/components/WaterUsageStats";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { ChartCard } from "@/components/ChartCard";
+import { RequestAllocation } from "@/components/RequestAllocation";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { blockchainService } from "@/services/blockchainService";
@@ -57,8 +58,9 @@ const Dashboard = () => {
           <WaterUsageStats currentUsage={currentUsage} />
           <div className="grid md:grid-cols-2 gap-8">
             <ChartCard />
-            <TransactionHistory />
+            <RequestAllocation />
           </div>
+          <TransactionHistory />
         </main>
       </div>
     </div>

@@ -1,9 +1,16 @@
-
 import { ethers } from 'ethers';
 import type { ContractTransactionResponse } from 'ethers';
 
-// Updated ABI to include request allocation functionality
+// Updated ABI to include constructor parameters
 const contractABI = [
+  {
+    "inputs": [
+      {"name": "initialLimit", "type": "uint256"},
+      {"name": "fineRate", "type": "uint256"}
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
   {
     "inputs": [],
     "name": "getWaterUsage",
@@ -43,11 +50,11 @@ interface WaterContractInterface extends ethers.BaseContract {
   connect(signer: ethers.Signer): WaterContractInterface;
 }
 
-// Using a valid Ethereum address format
-const contractAddress = "0x0000000000000000000000000000000000000000"; // Replace with your actual deployed contract address
+// Using environment variable for contract address
+const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS || "";
 
 const WATER_USAGE_LIMIT = 500; // 500ml limit
-const FINE_RATE = 0.50; // 50 cents per ml over limit
+const FINE_RATE = 50; // 50 basis points (0.50) per ml over limit
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
@@ -55,7 +62,14 @@ class BlockchainService {
   private initialized: boolean = false;
 
   constructor() {
-    this.provider = new ethers.JsonRpcProvider('https://sepolia.infura.io/v3/YOUR_INFURA_KEY');
+    // Use environment variable for Infura key
+    const infuraKey = import.meta.env.VITE_INFURA_KEY || "";
+    this.provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${infuraKey}`);
+    
+    if (!contractAddress) {
+      console.error('Contract address not set in environment variables');
+    }
+
     this.contract = new ethers.Contract(
       contractAddress,
       contractABI,
@@ -72,6 +86,27 @@ class BlockchainService {
         console.error('Failed to initialize blockchain service:', error);
         throw error;
       }
+    }
+  }
+
+  // Helper method to deploy the contract (useful for testing)
+  async deployContract() {
+    try {
+      const signer = await this.provider.getSigner();
+      const factory = new ethers.ContractFactory(contractABI, contractBytecode, signer);
+      
+      // Deploy with constructor parameters
+      const contract = await factory.deploy(
+        WATER_USAGE_LIMIT, // Initial limit in ml
+        FINE_RATE // Fine rate in basis points
+      );
+      
+      await contract.waitForDeployment();
+      console.log('Contract deployed at:', await contract.getAddress());
+      return contract.getAddress();
+    } catch (error) {
+      console.error('Error deploying contract:', error);
+      throw error;
     }
   }
 

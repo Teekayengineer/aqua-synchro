@@ -1,3 +1,4 @@
+
 import { ethers } from 'ethers';
 import type { ContractTransactionResponse } from 'ethers';
 
@@ -50,11 +51,14 @@ interface WaterContractInterface extends ethers.BaseContract {
   connect(signer: ethers.Signer): WaterContractInterface;
 }
 
-// Using environment variable for contract address
+// Using environment variable for contract address or default Ganache contract address
 const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS || "";
 
 const WATER_USAGE_LIMIT = 500; // 500ml limit
 const FINE_RATE = 50; // 50 basis points (0.50) per ml over limit
+
+// Ganache default URL
+const GANACHE_URL = "http://127.0.0.1:7545";
 
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
@@ -62,19 +66,19 @@ class BlockchainService {
   private initialized: boolean = false;
 
   constructor() {
-    // Use environment variable for Infura key
-    const infuraKey = import.meta.env.VITE_INFURA_KEY || "";
-    this.provider = new ethers.JsonRpcProvider(`https://sepolia.infura.io/v3/${infuraKey}`);
+    // Use Ganache provider
+    this.provider = new ethers.JsonRpcProvider(GANACHE_URL);
     
     if (!contractAddress) {
       console.error('Contract address not set in environment variables');
     }
 
+    // Create contract instance with type assertion
     this.contract = new ethers.Contract(
       contractAddress,
       contractABI,
       this.provider
-    ) as WaterContractInterface;
+    ) as unknown as WaterContractInterface;
   }
 
   private async initialize() {
@@ -90,10 +94,10 @@ class BlockchainService {
   }
 
   // Helper method to deploy the contract (useful for testing)
-  async deployContract() {
+  async deployContract(bytecode: string) {
     try {
       const signer = await this.provider.getSigner();
-      const factory = new ethers.ContractFactory(contractABI, contractBytecode, signer);
+      const factory = new ethers.ContractFactory(contractABI, bytecode, signer);
       
       // Deploy with constructor parameters
       const contract = await factory.deploy(
@@ -102,8 +106,9 @@ class BlockchainService {
       );
       
       await contract.waitForDeployment();
-      console.log('Contract deployed at:', await contract.getAddress());
-      return contract.getAddress();
+      const address = await contract.getAddress();
+      console.log('Contract deployed at:', address);
+      return address;
     } catch (error) {
       console.error('Error deploying contract:', error);
       throw error;
@@ -137,7 +142,6 @@ class BlockchainService {
       const signer = await this.provider.getSigner();
       const contractWithSigner = this.contract.connect(signer);
       
-      // Update water usage on the blockchain
       const tx = await contractWithSigner.updateWaterUsage(usage);
       const receipt = await tx.wait();
       
@@ -145,7 +149,6 @@ class BlockchainService {
         throw new Error('Transaction failed');
       }
 
-      // If there's a fine, log it
       if (fine > 0) {
         console.log(`Excess usage fine calculated: $${fine.toFixed(2)}`);
       }

@@ -2,6 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 import { FileText, Download } from "lucide-react";
 
 const reports = [
@@ -32,11 +33,59 @@ const reports = [
 ];
 
 export const ReportsSection = () => {
+  const { toast } = useToast();
+
+  const handleDownloadReport = (report: typeof reports[0]) => {
+    // Generate mock CSV content for the report
+    const csvContent = generateReportCSV(report);
+    
+    // Create and download the file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${report.name.replace(/\s+/g, '_')}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Report Downloaded",
+      description: `${report.name} has been downloaded successfully.`,
+    });
+  };
+
+  const generateReportCSV = (report: typeof reports[0]) => {
+    const headers = ['Date', 'Location', 'Usage (L)', 'Status', 'Notes'];
+    const sampleData = [
+      ['2024-03-31', 'Block A-1', '1250', 'Normal', 'Within allocated limit'],
+      ['2024-03-31', 'Block A-2', '1480', 'High', 'Approaching limit'],
+      ['2024-03-31', 'Block B-1', '980', 'Normal', 'Efficient usage'],
+      ['2024-03-31', 'Block B-2', '1650', 'Critical', 'Exceeded limit'],
+      ['2024-03-31', 'Block C-1', '1100', 'Normal', 'Within allocated limit'],
+    ];
+
+    const csvRows = [
+      headers.join(','),
+      ...sampleData.map(row => row.join(','))
+    ];
+
+    return `Report: ${report.name}\nGenerated: ${new Date().toISOString()}\nType: ${report.type}\n\n${csvRows.join('\n')}`;
+  };
+
+  const handleNewReport = () => {
+    toast({
+      title: "New Report",
+      description: "Report generation feature coming soon!",
+    });
+  };
+
   return (
     <Card className="p-6 glass-panel">
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold">Generated Reports</h3>
-        <Button size="sm">
+        <Button size="sm" onClick={handleNewReport}>
           <FileText className="h-4 w-4 mr-2" />
           New Report
         </Button>
@@ -59,7 +108,12 @@ export const ReportsSection = () => {
                   </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => handleDownloadReport(report)}
+                className="hover:bg-primary/10"
+              >
                 <Download className="h-4 w-4" />
               </Button>
             </div>

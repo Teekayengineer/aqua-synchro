@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,31 +14,50 @@ export const AllocationRequests = () => {
   const authorityUser = "Water Authority Admin";
 
   useEffect(() => {
-    // Load all requests
-    const allRequests = allocationService.getAllRequests();
-    setRequests(allRequests);
+    // Load all requests initially
+    const loadRequests = () => {
+      const allRequests = allocationService.getAllRequests();
+      console.log("Loading requests in authority dashboard:", allRequests);
+      setRequests(allRequests);
+    };
 
-    // Listen for updates
-    allocationService.addListener(setRequests);
+    loadRequests();
+
+    // Listen for updates with a more specific callback
+    const handleRequestsUpdate = (updatedRequests: AllocationRequest[]) => {
+      console.log("Authority dashboard received update:", updatedRequests);
+      setRequests([...updatedRequests]);
+    };
+
+    allocationService.addListener(handleRequestsUpdate);
+
+    // Also poll for updates every 2 seconds to ensure sync
+    const interval = setInterval(loadRequests, 2000);
 
     return () => {
-      allocationService.removeListener(setRequests);
+      allocationService.removeListener(handleRequestsUpdate);
+      clearInterval(interval);
     };
   }, []);
 
   const handleApprove = async (requestId: string) => {
     setProcessingId(requestId);
     try {
+      console.log("Approving request:", requestId);
       const success = allocationService.approveRequest(requestId, authorityUser);
       if (success) {
         toast({
           title: "Request Approved",
           description: "The water allocation request has been approved.",
         });
+        // Force refresh
+        const updatedRequests = allocationService.getAllRequests();
+        setRequests([...updatedRequests]);
       } else {
         throw new Error("Failed to approve request");
       }
     } catch (error) {
+      console.error("Error approving request:", error);
       toast({
         title: "Error",
         description: "Failed to approve the request. Please try again.",
@@ -53,16 +71,21 @@ export const AllocationRequests = () => {
   const handleDecline = async (requestId: string) => {
     setProcessingId(requestId);
     try {
+      console.log("Declining request:", requestId);
       const success = allocationService.declineRequest(requestId, authorityUser);
       if (success) {
         toast({
           title: "Request Declined",
           description: "The water allocation request has been declined.",
         });
+        // Force refresh
+        const updatedRequests = allocationService.getAllRequests();
+        setRequests([...updatedRequests]);
       } else {
         throw new Error("Failed to decline request");
       }
     } catch (error) {
+      console.error("Error declining request:", error);
       toast({
         title: "Error",
         description: "Failed to decline the request. Please try again.",
@@ -101,6 +124,8 @@ export const AllocationRequests = () => {
 
   const pendingRequests = requests.filter(req => req.status === 'pending');
   const processedRequests = requests.filter(req => req.status !== 'pending');
+
+  console.log("Rendering requests - Total:", requests.length, "Pending:", pendingRequests.length, "Processed:", processedRequests.length);
 
   return (
     <Card className="p-6 glass-panel">
